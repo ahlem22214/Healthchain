@@ -1,0 +1,46 @@
+<div style="background-image: url('assets/background.jpg'); background-repeat: no-repeat; background-size: cover;">
+    <div class="form-container">
+        <h1>SIGN UP AS A DOCTOR </h1>
+        <form (ngSubmit)="submitForm()" #signupForm="ngForm" id="medical-form">
+            <div class="section">
+                <label for="name">Name</label>
+                <input type="text" id="name" name="name" class="form-control" [(ngModel)]="user.name" required>
+
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" [(ngModel)]="user.password"
+                    required>
+
+                <label for="age">Age</label>
+                <input type="text" id="age" name="age" placeholder="Enter your age" [(ngModel)]="user.age" required>
+
+                <label for="gender">Gender</label>
+                <select class="form-control" id="gender" [(ngModel)]="user.gender" name="gender" required>
+                    <option *ngFor="let gender of genders" [value]="gender">{{ gender }}</option>
+                </select>
+
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control" [(ngModel)]="user.email" required>
+
+                <label for="user-role">User Role</label><select class="form-control" id="role" [(ngModel)]="user.role"
+                    name="role" required>
+                    <option *ngFor="let role of roles" [value]="role">{{ role }}</option>
+                </select>
+
+                <label for="specialization ">specialization</label>
+                <input type="text" id="specialization " name="specialization " placeholder="Enter your specialization "
+                    [(ngModel)]="user.specialization " required>
+            </div>
+            <button type="submit" (ngSubmit)="submitForm()" type="submit">Sign up</button>
+
+        </form>
+
+        <div class="mt-3" *ngIf="signupStatus">
+            <div class="alert alert-success" *ngIf="signupStatus.includes('SUCCESS')">
+                {{ signupMessage }}
+            </div>
+            <div class="alert alert-danger" *ngIf="signupStatus.includes('FAILED')">
+                {{ signupMessage }}
+            </div>
+        </div>
+    </div>
+</div>

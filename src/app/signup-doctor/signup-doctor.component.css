@@ -1,0 +1,68 @@
+.form-container {
+    padding: 20px;
+    font-family: 'Arial', sans-serif;
+    background: rgba(255, 255, 255, 0.8);
+    /* Couleur de fond avec transparence */
+    margin: 0;
+    max-width: 850px;
+    justify-content: left;
+    align-items: left;
+    width: 100%;
+    margin: auto;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+.form-container form {
+    background: rgba(255, 255, 255, 0.5);
+    /* Couleur de fond avec transparence pour le formulaire */
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.form-container h1 {
+    text-align: center;
+    color: #5a94af;
+    font-size: 20px;
+    padding-top: 50px;
+}
+
+label {
+    padding-left: 10px;
+    color: #135574;
+    font-family: Verdana, Geneva, Tahoma, sans-serif
+}
+
+.section input[type=text],
+.section input[type=password],
+.section input[type=number],
+.section input[type=email],
+.section select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 10px;
+    margin-top: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+    background-color: rgba(255, 255, 255, 0.9);
+    /* Couleur de fond avec transparence pour les champs de formulaire */
+}
+
+button {
+    width: 100%;
+    /* Ajustez la largeur comme vous le souhaitez */
+    padding: 10px;
+    background-color: rgb(173, 222, 173);
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 18px;
+    letter-spacing: 1px;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: rgb(140, 222, 140);
+
+}

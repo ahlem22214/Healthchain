@@ -1,0 +1,25 @@
+.record {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .record div {
+    margin-bottom: 10px;
+  }
+  
+  .record strong {
+    font-weight: bold;
+  }
+
+  .delete-button {
+    background-color: #96150f; /* Red color for delete button */
+    color: white; /* Text color */
+    padding: 8px 16px; /* Padding around the text */
+    border: none; /* Remove border */
+    border-radius: 4px; /* Add rounded corners */
+    cursor: pointer; /* Show pointer cursor on hover */
+  }
+  
+  

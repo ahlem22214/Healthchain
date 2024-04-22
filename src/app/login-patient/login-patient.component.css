@@ -1,0 +1,73 @@
+.container {
+    width: 80%;
+    margin: 0 auto;
+    padding: 20px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    background: #fff;
+    text-align: center;
+}
+
+.container1 {
+    width: 80%;
+margin-left:100px;    margin-top: 5px ;
+    padding: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    background: #fff;
+    text-align: center;
+}
+
+.custom-select {
+    margin-left: 20px;
+    width: 50%;
+    /* Définissez la largeur comme 100% ou ajustez selon vos besoins */
+    padding: 5px;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    box-sizing: border-box;
+    /* Assurez-vous que la taille totale inclut le rembourrage et la bordure */
+}
+
+.button {
+    background-color: #18518e;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    margin-top: 20px;
+}
+
+.button:hover {
+    background-color: #18518e;
+}
+
+table {
+    width: 100%;
+    margin-top: 20px;
+}
+
+th,
+td {
+    padding: 10px;
+    padding-left: 150px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+.revoke-btn {
+    background-color: #dc3545;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 5px 10px;
+    cursor: pointer;
+}
+
+.revoke-btn:hover {
+    background-color: #c82333;
+}
+.access-message {
+    color: green;
+}

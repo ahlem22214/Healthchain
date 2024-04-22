@@ -1,0 +1,35 @@
+<div class="container">
+  <h1>{{ patientName }} Records</h1>
+  <h3>Age: {{ age }}</h3>
+  <h3>Gender: {{ gender }}</h3>
+
+  <!-- Display patient records using DiagnosisCard component -->
+  <div class="record">
+    <div *ngFor="let record of patientRecords" class="record">
+      <div><strong>Doctor ID:</strong> {{ record.doctorId }}</div>
+      <div><strong>Diagnosis:</strong> {{ record.diagnosis }}</div>
+      <div><strong>Details:</strong> {{ record.details }}</div>
+    </div>
+  </div>
+  
+
+
+  
+  
+  <!-- Add new record form -->
+  <div class="add-record-form">
+    <h2>Add New Record</h2>
+
+    <form (submit)="addRecord()">
+      <div class="form-group">
+        <label for="diagnosis">Diagnosis:</label>
+        <input type="text" id="diagnosis" name="diagnosis" [(ngModel)]="newRecord.diagnosis" required>
+      </div>
+      <div class="form-group">
+        <label for="details">Details:</label>
+        <textarea id="details" name="details" [(ngModel)]="newRecord.details" required></textarea>
+      </div>
+      <button type="submit">Add Record</button>
+    </form>
+  </div>
+</div>

@@ -1,0 +1,53 @@
+/* styles.css or your preferred stylesheet */
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 60px;
+    background-color: #135574;
+   /* position: fixed;
+    /* Set the navbar to fixed position */
+    top: 0;
+    /* Position the navbar at the top of the page */
+    width: 100%;
+    /* Full width */
+}
+
+.logo-container {
+    display: flex;
+    align-items: center;
+}
+
+.logo {
+    width: 35px;
+    /* Adjust the width as needed */
+    height: auto;
+    /* To maintain the aspect ratio */
+    margin-right: 15px;
+    padding-left: 30px;
+}
+
+.app-name {
+    font-size: 30px;
+    font-weight: bold;
+    color: #fff;
+}
+
+.navbar-links {
+    display: flex;
+    align-items: center;
+}
+
+.navbar-links a {
+    text-decoration: none;
+    color: #fff;
+    padding-right: 30px;
+    font: size 15px;
+    ;
+}
+
+/* Optional: Hover effect for links */
+.navbar-links a:hover {
+    color: #6299b3;
+}

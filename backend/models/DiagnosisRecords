@@ -1,0 +1,32 @@
+const mongoose = require('mongoose');
+
+// Define the schema for a diagnosis card
+const diagnosisCardSchema = new mongoose.Schema({
+  doctorId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // Assuming 'User' model is used for doctors
+  },
+  diagnosis: {
+    type: String,
+  },
+  details: {
+    type: String,
+  },
+  iv: {
+    type: String, // IV will be stored as a string
+  }
+});
+
+// Define the schema for diagnosis records
+const diagnosisRecordSchema = new mongoose.Schema({
+  patientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User', // Assuming 'User' model is used for patients
+  },
+  diagnosisCards: [diagnosisCardSchema] // Array of diagnosis cards
+});
+
+// Create the DiagnosisRecord model
+const DiagnosisRecord = mongoose.model('DiagnosisRecord', diagnosisRecordSchema);
+
+module.exports = DiagnosisRecord;

@@ -1,0 +1,15 @@
+.record {
+    background-color: #f0f0f0;
+    border: 1px solid #ccc;
+    padding: 20px;
+    margin-bottom: 10px;
+  }
+  
+  .record div {
+    margin-bottom: 10px;
+  }
+  
+  .record strong {
+    font-weight: bold;
+  }
+  

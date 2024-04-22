@@ -1,0 +1,10 @@
+ <!-- Display patient records using DiagnosisCard component -->
+ <div class="record">
+    <div *ngFor="let record of patientRecords" class="record">
+      <div><strong>Doctor Name:</strong> {{ record.doctorName }}</div>
+      <div><strong>Diagnosis:</strong> {{ record.diagnosis }}</div>
+      <div><strong>Details:</strong> {{ record.details }}</div>
+      <button (click)="deleteDiagnosisCard(record.recordId, record.cardId)" class="delete-button">Delete record</button>
+    </div>
+   
+  </div>

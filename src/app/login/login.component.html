@@ -1,0 +1,27 @@
+<div style="background-image: url('assets/background.jpg'); background-repeat: no-repeat; background-size: cover;">
+    <div class="form-container">
+        <h1>Login</h1>
+        <form id="medical-form" (ngSubmit)="submitForm()" #loginForm="ngForm">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" class="form-control" [(ngModel)]="user.email" required>
+            </div>
+
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" name="password" class="form-control" [(ngModel)]="user.password"
+                    required>
+            </div>
+
+            <button type="submit" (ngSubmit)="submitForm()" class="btn btn-outline-success mt-5">Login</button>
+        </form>
+        <div class="mt-3" *ngIf="loginMessage">
+            <div class="alert alert-success" *ngIf="loginStatus.includes('SUCCESS')">
+                {{ loginMessage }}
+            </div>
+            <div class="alert alert-danger" *ngIf="loginStatus.includes('FAILED')">
+                {{ loginMessage }}
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,85 @@
+<div class="admin-page">
+    <h2>Admin Dashboard</h2>
+
+    <h3>All Patients</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Patient ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let patient of patients">
+                <td>{{ patient._id }}</td>
+                <td>{{ patient.name }}</td>
+                <td>{{ patient.email }}</td>
+                <td>
+                    <button class="edit-button" (click)="editPatient(patient)">Edit</button>
+                    <button class="delete-button" (click)="deletePatient(patient)">Delete</button>
+
+                </td>
+            </tr>
+        </tbody>
+
+    </table>
+
+    <h3>All Doctors</h3>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Doctor ID</th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Specialization</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr *ngFor="let doctor of doctors">
+                <td>{{ doctor._id }}</td>
+                <td>{{ doctor.name }}</td>
+                <td>{{ doctor.email }}</td>
+                <td>{{ doctor.specialization }}</td>
+                <td>
+                    <button class="edit-button" (click)="editDoctor(doctor)">Edit</button>
+                    <button class="delete-button" (click)="deleteDoctor(doctor)">Delete</button>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div *ngIf="editMode" class="edit-form">
+    <h3>Edit User</h3>
+    <form>
+        <label for="editName">Name:</label>
+        <input type="text" id="editName" name="editName" [(ngModel)]="editedUser.name">
+
+        <label for="editEmail">Email:</label>
+        <input type="email" id="editEmail" name="editEmail" [(ngModel)]="editedUser.email">
+
+        <!-- Common fields for both patients and doctors -->
+        <label for="editAge">Age:</label>
+        <input type="text" id="editAge" name="editAge" [(ngModel)]="editedUser.age">
+
+        <label for="editGender">Gender:</label>
+        <input type="text" id="editGender" name="editGender" [(ngModel)]="editedUser.gender">
+
+        <!-- Conditional fields based on role -->
+        <div *ngIf="editedUser.role === 'Patient'">
+            <label for="editCnss">CNSS:</label>
+            <input type="text" id="editCnss" name="editCnss" [(ngModel)]="editedUser.cnss">
+        </div>
+
+        <div *ngIf="editedUser.role === 'Doctor'">
+            <label for="editSpecialization">Specialization:</label>
+            <input type="text" id="editSpecialization" name="editSpecialization"
+                [(ngModel)]="editedUser.specialization">
+        </div>
+
+        <!-- Add input fields for other role-specific attributes -->
+        <button type="button" (click)="updateUser()">Update</button>
+    </form>
+</div>

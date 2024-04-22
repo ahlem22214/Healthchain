@@ -1,0 +1,21 @@
+<div class="container">
+    <div class="personal-info centered-section">
+      <div class="section-title">Personal Information</div>
+      <div class="info">
+        <div><strong>Name:</strong> {{ doctor?.name }}</div>
+        <div><strong>Age:</strong> {{ doctor?.age }}</div>
+        <div><strong>Specialty:</strong> {{ doctor?.specialization }}</div>
+      </div>
+     
+    </div>
+    <div class="accessible-emrs centered-section">
+      <div class="section-title">Accessible EMRs</div>
+      <div class="patient-list">
+        <div *ngFor="let patient of patients" class="patient">
+          <div class="patient-name">{{ patient.name }}</div>
+          <button class="action-button" (click)="viewPatientRecords(patient.id)">View Records</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
