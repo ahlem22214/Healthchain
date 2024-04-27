@@ -12,7 +12,7 @@ const auth = require('../middleware/auth'); // Import auth middleware
 const { Web3 } = require('web3');
 
 // Import your compiled smart contract artifacts
-const contractABI = require('../../build/contracts/AccessManagement.json');
+const contractABI = require('../../blockchain/build/contracts/AccessManagement.json');
 
 // Initialize web3 provider (e.g., connecting to Ganache)
 const web3 = new Web3('http://localhost:8545');
@@ -99,15 +99,49 @@ router.post('/grant-access', auth, async (req, res) => {
     // Save the updated or new document
     await patientDoctorAccess.save();
 
-    // Grant access to the doctor
-    const gasLimit = 300000;
-    const weiAmount = web3.utils.toWei('0.01', 'ether');
-    await contract.methods.grantAccess(patientName, doctorId).send({
-      from: accountAddress,
-      gas: gasLimit,
-      value: weiAmount
-    });
+    let result;
 
+    // Execute the smart contract function after patient signup
+    try {
+    const accounts = await web3.eth.getAccounts();
+     // Get the current gas price
+     const gasPriceWei = await web3.eth.getGasPrice();
+                
+     // Estimate gas cost for the transaction
+     const gasEstimate = await contract.methods.grantAccess(patientName, doctorId).estimateGas({ from: accountAddress });
+     
+     // Calculate total gas cost in ETH
+     const gasCostEth = web3.utils.fromWei((gasPriceWei * gasEstimate).toString(), 'ether');
+ 
+     // Calculate the value to be sent (excluding gas cost)
+     const valueEth = 0; // You can set the value to be sent here
+     
+     // Calculate total amount to be sent (including gas cost)
+     const totalAmountEth = parseFloat(gasCostEth) + parseFloat(valueEth);
+ 
+     // Convert the total amount to Wei
+     const weiAmount = web3.utils.toWei(totalAmountEth.toString(), 'ether');
+     const ethAmount = web3.utils.fromWei(weiAmount, 'ether');
+
+ 
+     // Prepare the transaction data
+     const transactionData = {
+         from: accountAddress,
+         gas: gasEstimate,
+         gasPrice: gasPriceWei,
+         value: weiAmount // Include the value to be sent
+     };
+
+     // Send the transaction
+     const transactionReceipt = await contract.methods.grantAccess(patientName, doctorId).send(transactionData);
+     
+     console.log(ethAmount);
+     console.log("Transaction successful:");
+
+    } catch (error) {
+      console.error("Error executing smart contract function:", error);
+  }
+   
     res.status(201).json({ status: 'SUCCESS', message: 'Access granted to the doctor' });
   } catch (error) {
     console.error('Error granting access to doctor:', error);
@@ -164,13 +198,48 @@ router.delete('/revokeAccess/:doctorId', auth, async (req, res) => {
       return res.status(404).json({ error: 'Doctor ID not found in access list' });
     }
 
-    // Emit an event to the smart contract
+    // Execute the smart contract function after patient signup
+    try {
     const accounts = await web3.eth.getAccounts();
-    await contract.methods.revokeAccess(patientName, doctorId).send({
-      from: accountAddress,
-      gas: 300000,
-      value: web3.utils.toWei('.3', 'ether') // Send 1 ether along with the transaction
-    });
+     // Get the current gas price
+     const gasPriceWei = await web3.eth.getGasPrice();
+                
+     // Estimate gas cost for the transaction
+     const gasEstimate = await contract.methods.revokeAccess(patientName, doctorId).estimateGas({ from: accountAddress });
+     
+     // Calculate total gas cost in ETH
+     const gasCostEth = web3.utils.fromWei((gasPriceWei * gasEstimate).toString(), 'ether');
+ 
+     // Calculate the value to be sent (excluding gas cost)
+     const valueEth = 0; // You can set the value to be sent here
+     
+     // Calculate total amount to be sent (including gas cost)
+     const totalAmountEth = parseFloat(gasCostEth) + parseFloat(valueEth);
+ 
+     // Convert the total amount to Wei
+     const weiAmount = web3.utils.toWei(totalAmountEth.toString(), 'ether');
+     const ethAmount = web3.utils.fromWei(weiAmount, 'ether');
+
+ 
+     // Prepare the transaction data
+     const transactionData = {
+         from: accountAddress,
+         gas: gasEstimate,
+         gasPrice: gasPriceWei,
+         value: weiAmount // Include the value to be sent
+     };
+
+     // Send the transaction
+     const transactionReceipt = await contract.methods.revokeAccess(patientName, doctorId).send(transactionData);
+     
+     console.log(ethAmount);
+     console.log("Transaction successful:");
+
+    } catch (error) {
+      console.error("Error executing smart contract function:", error);
+  }
+
+  
 
     res.status(200).json({ message: 'Access revoked successfully' });
   } catch (error) {

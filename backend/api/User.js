@@ -10,7 +10,7 @@ const key = "7395592833c5596f3acb166837f129ab11246f4c4baf55aadde5c3b0d5329a26"
 const { Web3 } = require('web3');
 
 // Import your compiled smart contract artifacts
-const contractABI = require('../../build/contracts/Registry.json');
+const contractABI = require('../../blockchain/build/contracts/Registry.json');
 
 // Initialize web3 provider (e.g., connecting to Ganache)
 const web3 = new Web3('http://localhost:8545');
@@ -83,16 +83,44 @@ router.post('/signup-patient', async (req, res) => {
 
         // Save the new patient user to the database
         await newPatient.save();
+        let result;
 
         // Execute the smart contract function after patient signup
-        const gasLimit = 300000; // Set the gas limit to a value higher than the estimated gas cost
         try {
-            // Execute the smart contract function
-            const result = await contract.methods.executePatientSignup(name, email, age, gender, role, cnss).send({
-                from: accountAddress, // Use the selected MetaMask account address
-                gas: gasLimit,
-                value: web3.utils.toWei('1', 'ether')
-            });
+            // Get the current gas price
+            const gasPriceWei = await web3.eth.getGasPrice();
+                
+            // Estimate gas cost for the transaction
+            const gasEstimate = await contract.methods.executePatientSignup(name, email, age, gender, role, cnss).estimateGas({ from: accountAddress });
+            
+            // Calculate total gas cost in ETH
+            const gasCostEth = web3.utils.fromWei((gasPriceWei * gasEstimate).toString(), 'ether');
+        
+            // Calculate the value to be sent (excluding gas cost)
+            const valueEth = 0; // You can set the value to be sent here
+            
+            // Calculate total amount to be sent (including gas cost)
+            const totalAmountEth = parseFloat(gasCostEth) + parseFloat(valueEth);
+        
+            // Convert the total amount to Wei
+            const weiAmount = web3.utils.toWei(totalAmountEth.toString(), 'ether');
+            const ethAmount = web3.utils.fromWei(weiAmount, 'ether');
+
+        
+            // Prepare the transaction data
+            const transactionData = {
+                from: accountAddress,
+                gas: gasEstimate,
+                gasPrice: gasPriceWei,
+                value: weiAmount // Include the value to be sent
+            };
+
+            // Send the transaction
+            const transactionReceipt = await contract.methods.executePatientSignup(name, email, age, gender, role, cnss).send(transactionData);
+            
+            console.log(ethAmount);
+
+            
             console.log("Transaction successful:", result);
         } catch (error) {
             console.error("Error executing smart contract function:", error);
@@ -184,22 +212,47 @@ router.post('/signup-doctor', async (req, res) => {
         await newDoctor.save();
         
         const accounts = await web3.eth.getAccounts();
-        const gasLimit = 300000; // Set the gas limit to a value higher than the estimated gas cost
         let result ; 
         
         try {
-            // Execute the smart contract function
-            const result = await contract.methods.executeDoctorSignup(name, email, age, gender, specialization).send({
-                from: accountAddress,
-                gas: gasLimit, // Set the gas limit for the transaction
-                value: web3.utils.toWei('1', 'ether') // Send 1 ether along with the transaction
+             // Get the current gas price
+             const gasPriceWei = await web3.eth.getGasPrice();
+                
+             // Estimate gas cost for the transaction
+             const gasEstimate = await contract.methods.executeDoctorSignup(name, email, age, gender, specialization).estimateGas({ from: accountAddress });
+             
+             // Calculate total gas cost in ETH
+             const gasCostEth = web3.utils.fromWei((gasPriceWei * gasEstimate).toString(), 'ether');
+         
+             // Calculate the value to be sent (excluding gas cost)
+             const valueEth = 0; // You can set the value to be sent here
+             
+             // Calculate total amount to be sent (including gas cost)
+             const totalAmountEth = parseFloat(gasCostEth) + parseFloat(valueEth);
+         
+             // Convert the total amount to Wei
+             const weiAmount = web3.utils.toWei(totalAmountEth.toString(), 'ether');
+             const ethAmount = web3.utils.fromWei(weiAmount, 'ether');
 
-            });
+         
+             // Prepare the transaction data
+             const transactionData = {
+                 from: accountAddress,
+                 gas: gasEstimate,
+                 gasPrice: gasPriceWei,
+                 value: weiAmount // Include the value to be sent
+             };
+
+             // Send the transaction
+             const transactionReceipt = await contract.methods.executeDoctorSignup(name, email, age, gender, specialization).send(transactionData);
+             
+             console.log(ethAmount);
+
+        
             console.log("Transaction successful:", result);
         } catch (error) {
             console.error("Error executing smart contract function:", error);
         }
-        console.log("Gas limit:", gasLimit);
         
         
         
@@ -283,35 +336,43 @@ router.post('/login', async (req, res) => {
             await user.save();
 
             const accounts = await web3.eth.getAccounts();
-            const gasLimit = 300000;
             
             try {
-               
-                // Obtenez le prix actuel du gaz en Wei
+                // Get the current gas price
                 const gasPriceWei = await web3.eth.getGasPrice();
+                
+                // Estimate gas cost for the transaction
+                const gasEstimate = await contract.methods.logUserSignIn(user.name, user.email, user.role).estimateGas({ from: accountAddress });
+                
+                // Calculate total gas cost in ETH
+                const gasCostEth = web3.utils.fromWei((gasPriceWei * gasEstimate).toString(), 'ether');
             
-                // Convertissez le prix du gaz de Wei en Ether
-                const gasPriceEth = web3.utils.fromWei(gasPriceWei, 'ether');
+                // Calculate the value to be sent (excluding gas cost)
+                const valueEth = 0; // You can set the value to be sent here
+                
+                // Calculate total amount to be sent (including gas cost)
+                const totalAmountEth = parseFloat(gasCostEth) + parseFloat(valueEth);
             
-                // Calculez le coût total du gaz en Ether
-                const gasCostEth = gasPriceEth * gasLimit;
-            
-                // Montant total à envoyer en incluant le coût du gaz
-                const totalAmountEth = gasCostEth; //coût du gaz en ETH
-                console.log(totalAmountEth);
+                // Convert the total amount to Wei
+                const weiAmount = web3.utils.toWei(totalAmountEth.toString(), 'ether');
+                const ethAmount = web3.utils.fromWei(weiAmount, 'ether');
 
             
-                // Convertissez le montant total en Wei
-                const weiAmount = web3.utils.toWei(totalAmountEth.toString(), 'ether');
-            
-                // Envoyez la transaction en incluant le coût du gaz
-                await contract.methods.logUserSignIn(user.name, user.email, user.role).send({
+                // Prepare the transaction data
+                const transactionData = {
                     from: accountAddress,
-                    gas: gasLimit,
-                    value: weiAmount
-                });
-            
+                    gas: gasEstimate,
+                    gasPrice: gasPriceWei,
+                    value: weiAmount // Include the value to be sent
+                };
+
+                // Send the transaction
+                const transactionReceipt = await contract.methods.logUserSignIn(user.name, user.email, user.role).send(transactionData);
+                
+                console.log('Transaction sent successfully.');
                 console.log('Transaction envoyée avec succès.');
+                console.log(ethAmount);
+
             } catch (error) {
                 console.error(error);
             }

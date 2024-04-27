@@ -13,7 +13,7 @@ const iv = crypto.randomBytes(16); // Generate a random initialization vector
 const { Web3 } = require('web3');
 
 // Import your compiled smart contract artifacts
-const contractABI = require('../../build/contracts/RecordManagment.json');
+const contractABI = require('../../blockchain/build/contracts/RecordManagment.json');
 
 // Initialize web3 provider (e.g., connecting to Ganache)
 const web3 = new Web3('http://localhost:8545');
@@ -114,17 +114,48 @@ console.log(User.accountAddress);
     }
     await record.save();
 
+    let result;
 
+    // Execute the smart contract function after patient signup
+    try {
     const accounts = await web3.eth.getAccounts();
-    const gasLimit = 300000;
-    const weiAmount = web3.utils.toWei('1', 'ether'); // Convert 0.01 ether to wei
-    
-    await contract.methods.addDiagnosisRecord(doctorId, patientId, encryptedDiagnosis.encryptedData, encryptedDetails.encryptedData)
-        .send({  from: accountAddress,
-          gas: gasLimit,
-          value: weiAmount // Include 0.01 ether along with the transaction
-        });
-  
+     // Get the current gas price
+     const gasPriceWei = await web3.eth.getGasPrice();
+                
+     // Estimate gas cost for the transaction
+     const gasEstimate = await contract.methods.addDiagnosisRecord(doctorId, patientId, encryptedDiagnosis.encryptedData, encryptedDetails.encryptedData).estimateGas({ from: accountAddress });
+     
+     // Calculate total gas cost in ETH
+     const gasCostEth = web3.utils.fromWei((gasPriceWei * gasEstimate).toString(), 'ether');
+ 
+     // Calculate the value to be sent (excluding gas cost)
+     const valueEth = 0; // You can set the value to be sent here
+     
+     // Calculate total amount to be sent (including gas cost)
+     const totalAmountEth = parseFloat(gasCostEth) + parseFloat(valueEth);
+ 
+     // Convert the total amount to Wei
+     const weiAmount = web3.utils.toWei(totalAmountEth.toString(), 'ether');
+     const ethAmount = web3.utils.fromWei(weiAmount, 'ether');
+
+ 
+     // Prepare the transaction data
+     const transactionData = {
+         from: accountAddress,
+         gas: gasEstimate,
+         gasPrice: gasPriceWei,
+         value: weiAmount // Include the value to be sent
+     };
+
+     // Send the transaction
+     const transactionReceipt = await contract.methods.addDiagnosisRecord(doctorId, patientId, encryptedDiagnosis.encryptedData, encryptedDetails.encryptedData).send(transactionData);
+     
+     console.log(ethAmount);
+     console.log("Transaction successful:", result);
+
+    } catch (error) {
+      console.error("Error executing smart contract function:", error);
+  }
 
 
     res.status(201).json({ message: 'Diagnosis record added successfully' });
