@@ -28,6 +28,9 @@ export class LoginPatientComponent implements OnInit {
   accessGranted: boolean = false;
   accessHolders: any[] = [];
   patientId:string='';
+  errorMessage: string = ''; // Declare errorMessage property
+  errorMessageRevoke: string = '';
+
 
 
   constructor(
@@ -86,9 +89,9 @@ export class LoginPatientComponent implements OnInit {
   async grantAccess() {
     const doctorId = this.selectedDoctor._id;
     if (doctorId) {
-      const selectedAccount = await this.metaMaskService.getSelectedAccount();
-      if (selectedAccount) {
-        const requestBody = { doctorId: doctorId, selectedAccount: selectedAccount }; // Include selected account here
+      const accountAddress = await this.metaMaskService.getSelectedAccount();
+      if (accountAddress) {
+        const requestBody = { doctorId: doctorId, accountAddress: accountAddress };
         this.patientService.grantAccess(requestBody).subscribe(
           (response) => {
             console.log('Access granted:', response);
@@ -112,15 +115,23 @@ export class LoginPatientComponent implements OnInit {
           },
           (error) => {
             console.error('Error granting access:', error);
-          }
-        );
-      } else {
-        console.error('No account selected in MetaMask.');
-      }
-    } else {
-      console.error('No doctor selected');
-    }
-  }
+            // Display the error message
+            this.errorMessage = error.error.message;
+            // Clear the error message after 5 seconds
+            setTimeout(() => {
+                this.errorMessage = '';
+            }, 5000);
+        }
+    );
+} else {
+    console.error('No account selected in MetaMask.');
+}
+} else {
+console.error('No doctor selected');
+}
+}
+  
+  
   
   
   
@@ -169,17 +180,19 @@ export class LoginPatientComponent implements OnInit {
     return of(this.accessHolders);
 
   }
+
+  
   async revokeAccess(doctorId: string) {
     try {
       // Get the selected MetaMask account
-      const selectedAccount = await this.metaMaskService.getSelectedAccount();
-      if (!selectedAccount) {
+      const accountAddress = await this.metaMaskService.getSelectedAccount();
+      if (!accountAddress) {
         console.error('No account selected in MetaMask.');
         return;
       }
   
       // Call the revokeAccess API with the selected account and doctorId
-      this.patientDoctorAccessService.revokeAccess(selectedAccount, doctorId).subscribe(
+      this.patientDoctorAccessService.revokeAccess(accountAddress, doctorId).subscribe(
         (response) => {
           console.log('Access revoked:', response);
           // Refresh access holders after revoking access
@@ -187,10 +200,19 @@ export class LoginPatientComponent implements OnInit {
         },
         (error) => {
           console.error('Error revoking access:', error);
+          if (error.status === 400 && error.error && error.error.message) {
+            // Display error message to the user
+            this.errorMessageRevoke = error.error.message;
+            // Hide error message after 5 seconds
+            setTimeout(() => {
+              this.errorMessageRevoke = '';
+            }, 5000);
+          }
         }
       );
     } catch (error) {
       console.error('Error fetching selected account:', error);
     }
   }
+  
 }  

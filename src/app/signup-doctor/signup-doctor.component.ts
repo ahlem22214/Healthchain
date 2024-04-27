@@ -13,7 +13,7 @@ interface User {
   email: string;
   role: string;
   specialization: string;
-  selectedAccount?: string; // Include selectedAccount property
+  accountAddress?: string; // Include selectedAccount property
 }
 
 
@@ -65,7 +65,7 @@ export class SignupDoctorComponent {
       }
   
       // Include selected account in the user object
-      this.user.selectedAccount = selectedAccount;
+      this.user.accountAddress = selectedAccount;
   
       this.http.post<any>('http://127.0.0.1:3000/user/signup-doctor', this.user)
         .subscribe(response => {

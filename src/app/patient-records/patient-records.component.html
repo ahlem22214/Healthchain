@@ -32,4 +32,7 @@
       <button type="submit">Add Record</button>
     </form>
   </div>
+  <div *ngIf="accountVerificationError" class="error-message">
+    {{ accountVerificationError }}
+  </div>
 </div>

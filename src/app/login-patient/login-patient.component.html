@@ -16,6 +16,9 @@
     </div>
     <button type="button" class="button" (click)="grantAccess()">Submit</button> 
 
+    <!-- Display error message -->
+    <div *ngIf="errorMessage" class="error-message">{{ errorMessage }}</div>
+
     <div *ngIf="accessGranted" class="container1">
         <!-- Other content -->
         <div class="access-message">Access granted to the selected doctor!</div>
@@ -34,11 +37,16 @@
             </tr>
         </thead>
         <tbody>
+
             <tr *ngFor="let access of accessHolders">
                 <td>{{ access.name }}</td>
                 <td>{{ access.specialization }}</td>
-                <td><button class="revoke-btn" (click)="revokeAccess(access.doctorId)">Revoke access</button></td>
+                <td><button class="revoke-btn" (click)="revokeAccess(access.doctorId)">Revoke access</button>
+                </td>
             </tr>
         </tbody>
+
     </table>
+    <div *ngIf="errorMessageRevoke" class="error-message">{{ errorMessageRevoke }}</div>
+
 </div>

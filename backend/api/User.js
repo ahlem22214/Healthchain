@@ -16,14 +16,14 @@ const contractABI = require('../../build/contracts/Registry.json');
 const web3 = new Web3('http://localhost:8545');
 
 // Set up contract instance
-const contractAddress = '0xc54330d3f35EC676b3FB3cf866EFB240Fd57426B'; // Address of your deployed smart contract
+const contractAddress = '0xa8A9C682aAC2c2722013a5988C7bD9D5e0d034f9'; // Address of your deployed smart contract
 const contract = new web3.eth.Contract(contractABI.abi, contractAddress);
 
 
 router.post('/signup-patient', async (req, res) => {
     try {
         // Extract signup data and selected account address from request body
-        let { name, email, password, age, gender, role, cnss, selectedAccount } = req.body;
+        let { name, email, password, age, gender, role, cnss, accountAddress } = req.body;
 
         // Trim whitespace from input fields
         name = name ? name.trim() : '';
@@ -33,10 +33,10 @@ router.post('/signup-patient', async (req, res) => {
         gender = gender ? gender.trim() : '';
         role = role ? role.trim() : '';
         cnss = cnss ? cnss.trim() : '';
-        selectedAccount = selectedAccount ? selectedAccount.trim() : '';
+        accountAddress = accountAddress ? accountAddress.trim() : '';
 
         // Check for empty required fields
-        if (!name || !email || !password || !age || !gender || !role || !cnss || !selectedAccount) {
+        if (!name || !email || !password || !age || !gender || !role || !cnss ) {
             return res.json({
                 status: "FAILED",
                 message: "Please fill in all fields!"
@@ -51,6 +51,14 @@ router.post('/signup-patient', async (req, res) => {
                 message: "Email already exists"
             });
         }
+        // Check if the account address is already associated with another user
+        const existingAccount = await User.findOne({ accountAddress: accountAddress });
+        if (existingAccount) {
+            return res.json({
+                status: "FAILED",
+                message: "Account address already associated with another user"
+            });
+        }
 
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
@@ -63,7 +71,8 @@ router.post('/signup-patient', async (req, res) => {
             age,
             gender,
             role,
-            cnss
+            cnss,
+            accountAddress
         });
 
         // Generate a new token upon successful signup
@@ -80,7 +89,7 @@ router.post('/signup-patient', async (req, res) => {
         try {
             // Execute the smart contract function
             const result = await contract.methods.executePatientSignup(name, email, age, gender, role, cnss).send({
-                from: selectedAccount, // Use the selected MetaMask account address
+                from: accountAddress, // Use the selected MetaMask account address
                 gas: gasLimit,
                 value: web3.utils.toWei('1', 'ether')
             });
@@ -100,7 +109,9 @@ router.post('/signup-patient', async (req, res) => {
                     age: newPatient.age,
                     gender: newPatient.gender,
                     cnss: newPatient.cnss,
-                    role: newPatient.role
+                    role: newPatient.role,
+                    accountAddress: newPatient.accountAddress // Include the account address in the response
+
                 },
                 token: token
             }
@@ -117,7 +128,7 @@ router.post('/signup-patient', async (req, res) => {
 // Route pour le sign-up des médecins
 router.post('/signup-doctor', async (req, res) => {
     try {
-        let { name, email, password, age, gender, role, specialization, selectedAccount } = req.body;
+        let { name, email, password, age, gender, role, specialization, accountAddress } = req.body;
 
         name = name ? name.trim() : '';
         email = email ? email.trim() : '';
@@ -126,19 +137,28 @@ router.post('/signup-doctor', async (req, res) => {
         gender = gender ? gender.trim() : '';
         role = role ? role.trim() : '';
         specialization = specialization ? specialization.trim() : '';
-        selectedAccount = selectedAccount ? selectedAccount.trim() : '';
+        accountAddress = accountAddress ? accountAddress.trim() : '';
 
         // Check for empty required fields
-        if (!name || !email || !password || !age || !gender || !role || !specialization || !selectedAccount) {
+        if (!name || !email || !password || !age || !gender || !role || !specialization ) {
             return res.status(400).json({ message: "Veuillez remplir tous les champs" });
         }
 
         // Check if email is already in use
         const existingDoctor = await User.findOne({ email });
         if (existingDoctor) {
-            return res.status(400).json({ message: "Email déjà utilisé" });
+            return res.status(400).json({ message: "Email already exists" });
         }
 
+         // Check if the account address is already associated with another user
+     // Check if the account address is already associated with another user
+     const existingAccount = await User.findOne({ accountAddress: accountAddress });
+     if (existingAccount) {
+         return res.json({
+             status: "FAILED",
+             message: "Account address already associated with another user"
+         });
+     }
         // Hash the password
         const hashedPassword = await bcrypt.hash(password, 10);
 
@@ -150,7 +170,8 @@ router.post('/signup-doctor', async (req, res) => {
             age,
             gender,
             specialization,
-            role
+            role,
+            accountAddress
         });
 
         // Generate a new token upon successful signup
@@ -169,7 +190,7 @@ router.post('/signup-doctor', async (req, res) => {
         try {
             // Execute the smart contract function
             const result = await contract.methods.executeDoctorSignup(name, email, age, gender, specialization).send({
-                from: selectedAccount,
+                from: accountAddress,
                 gas: gasLimit, // Set the gas limit for the transaction
                 value: web3.utils.toWei('1', 'ether') // Send 1 ether along with the transaction
 
@@ -194,7 +215,9 @@ router.post('/signup-doctor', async (req, res) => {
                     age: newDoctor.age,
                     gender: newDoctor.gender,
                     specialization: newDoctor.specialization,
-                    role: newDoctor.role
+                    role: newDoctor.role,
+                    accountAddress: newDoctor.accountAddress // Include the account address in the response
+
                 },
                 token: token  // Include the generated token in the response
             }
@@ -213,15 +236,17 @@ module.exports = router;
 
 /////////////////////sign in
 router.post('/login', async (req, res) => {
-    let { email, password, selectedAccount } = req.body;
+    let { email, password, accountAddress } = req.body;
 
     email = email ? email.trim() : '';
     password = password ? password.trim() : '';
+    accountAddress = accountAddress ? accountAddress.trim() : '';
+
 
 
     try {
         // Check empty fields
-        if (email === '' || password === '' || !selectedAccount) {
+        if (email === '' || password === '' ) {
             return res.json({
                 status: "FAILED",
                 message: "Empty input fields !"
@@ -243,6 +268,13 @@ router.post('/login', async (req, res) => {
         const passwordMatch = await bcrypt.compare(password, hashedPassword);
 
         if (passwordMatch) {
+            // Check if the selected account matches the one associated with the user
+            if (user.accountAddress !== accountAddress) {
+                return res.json({
+                    status: "FAILED",
+                    message: "Selected account does not match the one associated with the user"
+                });
+            }
             // Generate a new token upon successful login
             const token = jwt.sign({ _id: user._id, role: user.role }, key);
 
@@ -274,7 +306,7 @@ router.post('/login', async (req, res) => {
             
                 // Envoyez la transaction en incluant le coût du gaz
                 await contract.methods.logUserSignIn(user.name, user.email, user.role).send({
-                    from: selectedAccount,
+                    from: accountAddress,
                     gas: gasLimit,
                     value: weiAmount
                 });

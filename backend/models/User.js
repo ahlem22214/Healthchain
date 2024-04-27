@@ -13,6 +13,7 @@ const UserSchema = new Schema({
     role: String,
     cnss: { type: String, required: function () { return this.role === 'Patient'; } },
     specialization: { type: String, required: function () { return this.role === 'Doctor'; } },
+    accountAddress: String ,
     token: String // Add token field to store JWT token
 });
 

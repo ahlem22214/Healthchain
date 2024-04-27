@@ -13,7 +13,7 @@ interface User {
   email: string;
   role: string;
   cnss: string;
-  selectedAccount?: string; // Optional property for selected MetaMask account
+  accountAddress?: string; // Make accountAddress optional with '?'
 }
 
 @Component({
@@ -53,12 +53,13 @@ export class SignupPatientComponent {
       const selectedAccount = await this.metaMaskService.getSelectedAccount();
       if (selectedAccount) {
         // Assign the selected account address to user object
-        this.user.selectedAccount = selectedAccount;
+        this.user.accountAddress = selectedAccount;
+            console.log(this.user.accountAddress);
 
         // Submit the signup data to the backend API
         this.http.post<any>('http://127.0.0.1:3000/user/signup-patient', this.user)
           .subscribe(response => {
-            console.log('response:', response);
+            //console.log('response:', response);
             this.signupMessage = response.message;
             this.signupStatus = response.status;
 

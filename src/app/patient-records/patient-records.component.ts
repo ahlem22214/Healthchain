@@ -34,6 +34,10 @@ export class PatientRecordsComponent implements OnInit {
   patientName: string = '';
   gender: string = '';
   age: number = 0;
+  errorMessage: string = ''; // Declare errorMessage property here
+  accountVerificationError: string = '';
+
+
 
 
   constructor(
@@ -106,7 +110,6 @@ export class PatientRecordsComponent implements OnInit {
 
   // Add other methods as needed
 
-
   addRecord(): void {
     this.metaMaskService.connect().then((connected) => {
       if (!connected) {
@@ -114,8 +117,8 @@ export class PatientRecordsComponent implements OnInit {
         return;
       }
   
-      this.metaMaskService.getSelectedAccount().then((selectedAccount) => {
-        if (!selectedAccount) {
+      this.metaMaskService.getSelectedAccount().then((accountAddress) => {
+        if (!accountAddress) {
           console.error('No account selected in MetaMask.');
           return;
         }
@@ -125,13 +128,17 @@ export class PatientRecordsComponent implements OnInit {
             const doctorId = doctorInfo.doctorId;
             const { diagnosis, details } = this.newRecord;
   
-            this.patientRecordsService.addDiagnosisRecord(this.patientId, { doctorId, diagnosis, details,selectedAccount }).subscribe(
+            this.patientRecordsService.addDiagnosisRecord(this.patientId, { doctorId, diagnosis, details, accountAddress }).subscribe(
               () => {
                 this.newRecord = { doctorId: '', diagnosis: '', details: '' };
                 this.loadPatientRecords();
               },
               (error) => {
                 console.error('Error adding diagnosis record:', error);
+                this.accountVerificationError = 'Account verification failed. Make sure you are using the correct account.';
+                setTimeout(() => {
+                  this.accountVerificationError = '';
+                }, 5000); // Clear error after 5 seconds (5000 milliseconds)
               }
             );
           },
@@ -146,6 +153,4 @@ export class PatientRecordsComponent implements OnInit {
       console.error('Error connecting to MetaMask:', error);
     });
   }
-  
-  
-}  
+}

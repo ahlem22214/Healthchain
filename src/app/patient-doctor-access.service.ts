@@ -47,13 +47,13 @@ export class PatientDoctorAccessService {
   }
 
 
-  revokeAccess(selectedAccount: string, doctorId: string): Observable<any> {
+  revokeAccess(accountAddress: string, doctorId: string): Observable<any> {
     const token = this.authService.getToken();
     if (!token) {
       return throwError('Token not found');
     }
 
-    const body = { selectedAccount, doctorId };
+    const body = { accountAddress, doctorId };
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     const requestOptions = {
       headers: headers,

@@ -10,7 +10,7 @@ interface User {
   name: string;
   email: string;
   role: string;
-  selectedAccount?: string; // Include selectedAccount property
+  accountAddress?: string; // Include selectedAccount property
 
 }
 
@@ -24,7 +24,7 @@ export class LoginComponent {
   user = {
     email: '',
     password: '',
-    selectedAccount: '' // Include selectedAccount property
+    accountAddress: '' // Include selectedAccount property
   };
   loginMessage: string = '';
   loginStatus: string = '';
@@ -48,14 +48,14 @@ export class LoginComponent {
       }
 
       // Get the selected MetaMask account
-      const selectedAccount = await this.metaMaskService.getSelectedAccount();
-      if (!selectedAccount) {
+      const accountAddress = await this.metaMaskService.getSelectedAccount();
+      if (!accountAddress) {
         console.error('No account selected in MetaMask.');
         return;
       }
 
       // Include selected account in the user object
-      this.user.selectedAccount = selectedAccount;
+      this.user.accountAddress = accountAddress;
 
       this.http.post<any>('http://localhost:3000/user/login', this.user)
         .subscribe(response => {

@@ -18,7 +18,7 @@ const contractABI = require('../../build/contracts/AccessManagement.json');
 const web3 = new Web3('http://localhost:8545');
 
 // Set up contract instance
-const contractAddress = '0xb752D333903838ec3F50ce0Ce83FC6e9c90FFAc9'; // Address of your deployed smart contract
+const contractAddress = '0x625c9CAeff1283B89235a61eE6d6A970339111a8'; // Address of your deployed smart contract
 const contract = new web3.eth.Contract(contractABI.abi, contractAddress);
 
 // Route to serve doctor information
@@ -69,15 +69,19 @@ router.get('/patientinfos/:patientId', auth, async (req, res) => {
 
 // Route to grant access to a doctor
 router.post('/grant-access', auth, async (req, res) => {
-  const { doctorId, selectedAccount } = req.body; // Extract doctorId and selectedAccount from request body
+  const { doctorId, accountAddress } = req.body;
   const patientId = req.user._id;
-  const patientName = req.user.name; // Retrieve the name of the patient
-
+  const patientName = req.user.name;
 
   try {
+    // Verify that the account address provided matches the one stored in the database
+    const user = await User.findById(patientId);
+    if (!user || user.accountAddress !== accountAddress) {
+      return res.status(400).json({ status: 'FAILED', message: 'Account verification failed. Make sure you are using the correct account.' });
+    }
+
     // Ensure doctorId is always provided as an array
     const doctorIds = Array.isArray(doctorId) ? doctorId : [doctorId];
-
 
     // Find existing patientDoctorAccess document
     let patientDoctorAccess = await PatientDoctorAccess.findOne({ patientId });
@@ -94,16 +98,14 @@ router.post('/grant-access', auth, async (req, res) => {
 
     // Save the updated or new document
     await patientDoctorAccess.save();
-    console.log("Selected Account:", selectedAccount);
 
-    const accounts = await web3.eth.getAccounts();
+    // Grant access to the doctor
     const gasLimit = 300000;
-    const weiAmount = web3.utils.toWei('.5', 'ether'); // Convert 0.01 ether to wei
-
+    const weiAmount = web3.utils.toWei('0.01', 'ether');
     await contract.methods.grantAccess(patientName, doctorId).send({
-      from: selectedAccount, // Use selected account here
+      from: accountAddress,
       gas: gasLimit,
-      value: weiAmount // Include 0.01 ether along with the transaction
+      value: weiAmount
     });
 
     res.status(201).json({ status: 'SUCCESS', message: 'Access granted to the doctor' });
@@ -112,7 +114,6 @@ router.post('/grant-access', auth, async (req, res) => {
     res.status(500).json({ status: 'FAILED', message: 'Internal server error' });
   }
 });
-
 
 
 
@@ -139,15 +140,20 @@ router.get('/patientDoctorAccess/:patientId', async (req, res) => {
 
 router.delete('/revokeAccess/:doctorId', auth, async (req, res) => {
   try {
-    const patientId = req.user._id; // Assuming the patient ID is available in the request
+    const patientId = req.user._id;
     const doctorId = req.params.doctorId;
-    const patientName = req.user.name; // Retrieve the name of the patient
-    const  selectedAccount = req.body.selectedAccount; // Extract doctorId and selectedAccount from request body
+    const patientName = req.user.name;
+    const accountAddress = req.body.accountAddress;
+    console.log(accountAddress);
 
 
-    console.log(selectedAccount)
+    // Find the user in the database
+    const user = await User.findById(patientId);
+    if (!user || user.accountAddress !== accountAddress) {
+      return res.status(400).json({ status: 'FAILED', message: 'Account verification failed. Make sure you are using the correct account.' });
+    }
 
-console.log(doctorId)
+
     // Update the record for the patient
     const result = await PatientDoctorAccess.updateOne(
       { patientId },
@@ -157,13 +163,13 @@ console.log(doctorId)
     if (result.nModified === 0) {
       return res.status(404).json({ error: 'Doctor ID not found in access list' });
     }
+
     // Emit an event to the smart contract
     const accounts = await web3.eth.getAccounts();
     await contract.methods.revokeAccess(patientName, doctorId).send({
-      from: selectedAccount,
+      from: accountAddress,
       gas: 300000,
       value: web3.utils.toWei('.3', 'ether') // Send 1 ether along with the transaction
-
     });
 
     res.status(200).json({ message: 'Access revoked successfully' });

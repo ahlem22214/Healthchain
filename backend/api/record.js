@@ -1,5 +1,7 @@
 const crypto = require('crypto');
 const express = require('express');
+const auth = require('../middleware/auth'); // Import auth middleware
+const User = require('./../models/User');
 const router = express.Router();
 const { ObjectId } = require('mongoose').Types;
 const DiagnosisRecord = require('../models/DiagnosisRecords');
@@ -17,7 +19,7 @@ const contractABI = require('../../build/contracts/RecordManagment.json');
 const web3 = new Web3('http://localhost:8545');
 
 // Set up contract instance
-const contractAddress = '0xE6F0e2B4CcD45c71E699eAE0f2780530157B9668'; // Address of your deployed smart contract
+const contractAddress = '0xb912faAAA751423277B476C465c54Cc6225E6735'; // Address of your deployed smart contract
 const contract = new web3.eth.Contract(contractABI.abi, contractAddress);
 
 
@@ -75,14 +77,23 @@ router.get('/patient-records/:patientId', async (req, res) => {
 });
 
 // Route to add a new diagnosis record for a patient
-router.post('/patient-records/:patientId/add-record', async (req, res) => {
+router.post('/patient-records/:patientId/add-record', auth, async (req, res) => {
   try {
-    const patientId = req.params.patientId;
-    const { doctorId, diagnosis, details,selectedAccount } = req.body;
+    const doctorI = req.user._id;
 
+    const patientId = req.params.patientId;
+    const { doctorId, diagnosis, details,accountAddress } = req.body;
+     // Check if the selected account matches the one associated with the user
+     const user = await User.findById(doctorI);
+
+     if (!user || user.accountAddress !== accountAddress) {
+       return res.status(400).json({ status: 'FAILED', message: 'Account verification failed. Make sure you are using the correct account.' });
+     }
+console.log(User.accountAddress);
     // Encrypt diagnosis and details
     const encryptedDiagnosis = encrypt(diagnosis);
     const encryptedDetails = encrypt(details);
+
 
     // Create a new diagnosis card
     const newDiagnosis = {
@@ -91,6 +102,7 @@ router.post('/patient-records/:patientId/add-record', async (req, res) => {
       details: encryptedDetails.encryptedData,
       iv: encryptedDiagnosis.iv // Store IV for decryption
     };
+     
 
     // Find the diagnosis record for the patient
     let record = await DiagnosisRecord.findOne({ patientId: patientId });
@@ -108,7 +120,7 @@ router.post('/patient-records/:patientId/add-record', async (req, res) => {
     const weiAmount = web3.utils.toWei('1', 'ether'); // Convert 0.01 ether to wei
     
     await contract.methods.addDiagnosisRecord(doctorId, patientId, encryptedDiagnosis.encryptedData, encryptedDetails.encryptedData)
-        .send({  from: selectedAccount,
+        .send({  from: accountAddress,
           gas: gasLimit,
           value: weiAmount // Include 0.01 ether along with the transaction
         });
@@ -121,15 +133,38 @@ router.post('/patient-records/:patientId/add-record', async (req, res) => {
     res.status(500).json({ error: 'Internal Server Error' });
   }
 });
-
 // DELETE endpoint to delete a diagnosis record by ID
 router.delete('/diagnosisRecords/:recordId/cards/:cardId', async (req, res) => {
   try {
-    // Code for deletion...
+    const recordId = req.params.recordId;
+    const cardId = req.params.cardId;
+
+    // Find the diagnosis record by ID
+    const record = await DiagnosisRecord.findById(recordId);
+
+    if (!record) {
+      return res.status(404).json({ error: 'Diagnosis record not found' });
+    }
+
+    // Find the index of the card to be deleted
+    const cardIndex = record.diagnosisCards.findIndex(card => card._id.toString() === cardId);
+
+    if (cardIndex === -1) {
+      return res.status(404).json({ error: 'Diagnosis card not found' });
+    }
+
+    // Remove the card from the diagnosis record
+    record.diagnosisCards.splice(cardIndex, 1);
+
+    // Save the updated record
+    await record.save();
+
+    res.json({ message: 'Diagnosis card deleted successfully' });
   } catch (error) {
     console.error('Error deleting diagnosis card:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 
 module.exports = router;
