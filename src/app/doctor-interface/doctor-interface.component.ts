@@ -5,7 +5,9 @@ import { PatientDoctorAccessService } from '../patient-doctor-access.service';
 import { Observable, of } from 'rxjs';
 import { tap, catchError } from 'rxjs/operators';
 import { Router } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { AuthService } from '../auth.service'; // Import AuthService
+
 
 
 @Component({
@@ -22,6 +24,8 @@ export class DoctorInterfaceComponent implements OnInit {
   patients: any[] = [];
 
   constructor(
+    private http: HttpClient,
+    private authService: AuthService, // Inject AuthService
     private doctorService: DoctorService,
     private patientDoctorAccessService: PatientDoctorAccessService,
     private router: Router
@@ -91,5 +95,31 @@ export class DoctorInterfaceComponent implements OnInit {
     this.router.navigate(['/patient-records', patientId]);
     console.log(patientId);
 
+  }
+  logout() {
+    const token = this.authService.getToken();
+    if (!token) {
+      console.error('Token not found');
+      return;
+    }
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    const requestOptions = {
+      headers: headers
+    };
+
+    this.http.post('http://localhost:3000/USER/logout', {}, requestOptions).subscribe(
+      (response: any) => {
+        if (response.status === 'SUCCESS') {
+          this.authService.removeToken();
+          this.router.navigate(['/login']);
+        } else {
+          console.error('Logout failed:', response.message);
+        }
+      },
+      (error: any) => {
+        console.error('Error during logout:', error);
+      }
+    );
   }
 }

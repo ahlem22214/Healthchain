@@ -29,12 +29,20 @@ export class PatientRecordsService {
     return this.http.get<any[]>(url, requestOptions);
   }
 
-  addDiagnosisRecord(patientId: string, record: any): Observable<any> {
+  addDiagnosisRecord(patientId: string,  doctorId:string, diagnosis:string, details:string, accountAddress:string,bufferfile:any): Observable<any> {
     const token = this.authService.getToken();
 
     if (!token) {
       return throwError('Token not found');
     }
+    const body = {
+      doctorId: doctorId,
+      diagnosis: diagnosis,
+      details: details,
+      accountAddress: accountAddress,
+      bufferfile: bufferfile // Assuming selectedFile contains the PDF data
+    };
+
 
     const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
     const requestOptions = {
@@ -42,8 +50,9 @@ export class PatientRecordsService {
     };
 
     const url = `${this.baseUrl}/patient-records/${patientId}/add-record`;
-    return this.http.post<any>(url, record, requestOptions);
+    return this.http.post<any>(url,body, requestOptions);
   }
+
   deleteDiagnosisCard(recordId: string, cardId: string): Observable<any> {
     const token = this.authService.getToken();
 

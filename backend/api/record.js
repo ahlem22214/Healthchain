@@ -9,6 +9,7 @@ const algorithm = 'aes-256-cbc'; // AES encryption algorithm
 const key = crypto.randomBytes(32); // Generate a random encryption key
 const iv = crypto.randomBytes(16); // Generate a random initialization vector
 
+
 // Import web3.js library
 const { Web3 } = require('web3');
 
@@ -21,6 +22,8 @@ const web3 = new Web3('http://localhost:8545');
 // Set up contract instance
 const contractAddress = '0xb912faAAA751423277B476C465c54Cc6225E6735'; // Address of your deployed smart contract
 const contract = new web3.eth.Contract(contractABI.abi, contractAddress);
+
+
 
 
 // Encrypt function
@@ -48,7 +51,6 @@ function decrypt(iv, encryptedData) {
 }
 
 
-// Route to fetch patient records by patientId
 router.get('/patient-records/:patientId', async (req, res) => {
   try {
     const patientId = req.params.patientId;
@@ -62,7 +64,8 @@ router.get('/patient-records/:patientId', async (req, res) => {
             cardId: card._id,
             doctorId: card.doctorId,
             diagnosis: decrypt(card.iv, card.diagnosis), // Decrypt diagnosis
-            details: decrypt(card.iv, card.details) // Decrypt details
+            details: decrypt(card.iv, card.details), // Decrypt details
+            bufferfile: card.bufferfile // Include PDF data
           };
         })
       };
@@ -76,34 +79,37 @@ router.get('/patient-records/:patientId', async (req, res) => {
   }
 });
 
-// Route to add a new diagnosis record for a patient
+/*Route to add a new diagnosis record for a patient*/
 router.post('/patient-records/:patientId/add-record', auth, async (req, res) => {
   try {
     const doctorI = req.user._id;
-
     const patientId = req.params.patientId;
-    const { doctorId, diagnosis, details,accountAddress } = req.body;
-     // Check if the selected account matches the one associated with the user
-     const user = await User.findById(doctorI);
+    const { doctorId, diagnosis, details, accountAddress, bufferfile } = req.body;
+    console.log('pdfData:', bufferfile);
 
-     if (!user || user.accountAddress !== accountAddress) {
-       return res.status(400).json({ status: 'FAILED', message: 'Account verification failed. Make sure you are using the correct account.' });
-     }
-console.log(User.accountAddress);
+
+    // Check if the selected account matches the one associated with the user
+    const user = await User.findById(doctorI);
+    if (!user || user.accountAddress !== accountAddress) {
+    
+
+      return res.status(400).json({ status: 'FAILED', message: 'Account verification failed. Make sure you are using the correct account.' });
+    }
+    console.log(accountAddress);
+    console.log(user.accountAddress);
     // Encrypt diagnosis and details
     const encryptedDiagnosis = encrypt(diagnosis);
     const encryptedDetails = encrypt(details);
-
 
     // Create a new diagnosis card
     const newDiagnosis = {
       doctorId,
       diagnosis: encryptedDiagnosis.encryptedData,
       details: encryptedDetails.encryptedData,
-      iv: encryptedDiagnosis.iv // Store IV for decryption
+      iv: encryptedDiagnosis.iv, // Store IV for decryption
+      bufferfile: bufferfile, // Store PDF binary data
     };
-     
-
+console.log('buffer', bufferfile)
     // Find the diagnosis record for the patient
     let record = await DiagnosisRecord.findOne({ patientId: patientId });
 
@@ -114,51 +120,30 @@ console.log(User.accountAddress);
     }
     await record.save();
 
-    let result;
-
     // Execute the smart contract function after patient signup
     try {
-    const accounts = await web3.eth.getAccounts();
-     // Get the current gas price
-     const gasPriceWei = await web3.eth.getGasPrice();
-                
-     // Estimate gas cost for the transaction
-     const gasEstimate = await contract.methods.addDiagnosisRecord(doctorId, patientId, encryptedDiagnosis.encryptedData, encryptedDetails.encryptedData).estimateGas({ from: accountAddress });
-     
-     // Calculate total gas cost in ETH
-     const gasCostEth = web3.utils.fromWei((gasPriceWei * gasEstimate).toString(), 'ether');
- 
-     // Calculate the value to be sent (excluding gas cost)
-     const valueEth = 0; // You can set the value to be sent here
-     
-     // Calculate total amount to be sent (including gas cost)
-     const totalAmountEth = parseFloat(gasCostEth) + parseFloat(valueEth);
- 
-     // Convert the total amount to Wei
-     const weiAmount = web3.utils.toWei(totalAmountEth.toString(), 'ether');
-     const ethAmount = web3.utils.fromWei(weiAmount, 'ether');
-
- 
-     // Prepare the transaction data
-     const transactionData = {
-         from: accountAddress,
-         gas: gasEstimate,
-         gasPrice: gasPriceWei,
-         value: weiAmount // Include the value to be sent
-     };
-
-     // Send the transaction
-     const transactionReceipt = await contract.methods.addDiagnosisRecord(doctorId, patientId, encryptedDiagnosis.encryptedData, encryptedDetails.encryptedData).send(transactionData);
-     
-     console.log(ethAmount);
-     console.log("Transaction successful:", result);
-
+      const accounts = await web3.eth.getAccounts();
+      const gasPriceWei = await web3.eth.getGasPrice();
+      const gasEstimate = await contract.methods.addDiagnosisRecord(doctorId, patientId, encryptedDiagnosis.encryptedData, encryptedDetails.encryptedData).estimateGas({ from: accountAddress });
+      const gasCostEth = web3.utils.fromWei((gasPriceWei * gasEstimate).toString(), 'ether');
+      const valueEth = 0; // You can set the value to be sent here
+      const totalAmountEth = parseFloat(gasCostEth) + parseFloat(valueEth);
+      const weiAmount = web3.utils.toWei(totalAmountEth.toString(), 'ether');
+      const ethAmount = web3.utils.fromWei(weiAmount, 'ether');
+      const transactionData = {
+        from: accountAddress,
+        gas: gasEstimate,
+        gasPrice: gasPriceWei,
+        value: weiAmount // Include the value to be sent
+      };
+      const transactionReceipt = await contract.methods.addDiagnosisRecord(doctorId, patientId, encryptedDiagnosis.encryptedData, encryptedDetails.encryptedData).send(transactionData);
+      console.log(ethAmount);
+      console.log("Transaction successful:", transactionReceipt);
     } catch (error) {
       console.error("Error executing smart contract function:", error);
-  }
+    }
 
-
-    res.status(201).json({ message: 'Diagnosis record added successfully' });
+    res.status(201).json({ message: 'Diagnosis record added successfully'});
   } catch (error) {
     console.error('Error adding diagnosis record:', error);
     res.status(500).json({ error: 'Internal Server Error' });

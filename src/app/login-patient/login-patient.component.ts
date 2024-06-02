@@ -3,7 +3,9 @@ import { PatientService } from '../patient.service';
 import { DoctorService } from '../doctor.service';
 import { PatientDoctorAccessService } from '../patient-doctor-access.service';
 import { Observable,of } from 'rxjs';
+import { AuthService } from '../auth.service'; // Import AuthService
 import { Router } from '@angular/router';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { MetaMaskService } from '../metamask.service'; // Import MetaMaskService
 
 
@@ -34,6 +36,8 @@ export class LoginPatientComponent implements OnInit {
 
 
   constructor(
+    private http: HttpClient,
+    private authService: AuthService, // Inject AuthService
     private router: Router,
     private patientService: PatientService,
     private doctorService: DoctorService,
@@ -214,5 +218,31 @@ console.error('No doctor selected');
       console.error('Error fetching selected account:', error);
     }
   }
-  
+
+  logout() {
+    const token = this.authService.getToken();
+    if (!token) {
+      console.error('Token not found');
+      return;
+    }
+
+    const headers = new HttpHeaders().set('Authorization', `Bearer ${token}`);
+    const requestOptions = {
+      headers: headers
+    };
+
+    this.http.post('http://localhost:3000/USER/logout', {}, requestOptions).subscribe(
+      (response: any) => {
+        if (response.status === 'SUCCESS') {
+          this.authService.removeToken();
+          this.router.navigate(['/login']);
+        } else {
+          console.error('Logout failed:', response.message);
+        }
+      },
+      (error) => {
+        console.error('Error during logout:', error);
+      }
+    );
+  }
 }  

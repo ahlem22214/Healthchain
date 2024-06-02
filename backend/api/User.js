@@ -16,7 +16,7 @@ const contractABI = require('../../blockchain/build/contracts/Registry.json');
 const web3 = new Web3('http://localhost:8545');
 
 // Set up contract instance
-const contractAddress = '0xa8A9C682aAC2c2722013a5988C7bD9D5e0d034f9'; // Address of your deployed smart contract
+const contractAddress = '0xc59db254a3362A4cacb6B79b45F01eaf2B0b239e'; // Address of your deployed smart contract
 const contract = new web3.eth.Contract(contractABI.abi, contractAddress);
 
 
@@ -408,4 +408,50 @@ router.post('/login', async (req, res) => {
     }
 });
 
+
+
+// Add this code to your user.js file
+
+router.post('/logout', async (req, res) => {
+    console.log('Logout endpoint hit');
+  
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+  
+    if (!token) {
+      return res.status(401).json({
+        status: "FAILED",
+        message: "Token not found"
+      });
+    }
+  
+    try {
+      const decoded = jwt.verify(token, key);
+      const userId = decoded._id;
+  
+      const user = await User.findById(userId);
+  
+      if (!user) {
+        return res.status(404).json({
+          status: "FAILED",
+          message: "User not found"
+        });
+      }
+  
+      user.token = null;
+      await user.save();
+  
+      res.status(200).json({
+        status: "SUCCESS",
+        message: "Logged out successfully"
+      });
+    } catch (error) {
+      console.error("Error during logout:", error);
+      res.status(500).json({
+        status: "FAILED",
+        message: "Internal server error"
+      });
+    }
+  });
+  
 module.exports = router;

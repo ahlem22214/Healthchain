@@ -18,7 +18,7 @@ const contractABI = require('../../blockchain/build/contracts/AccessManagement.j
 const web3 = new Web3('http://localhost:8545');
 
 // Set up contract instance
-const contractAddress = '0x625c9CAeff1283B89235a61eE6d6A970339111a8'; // Address of your deployed smart contract
+const contractAddress = '0x31d4c6F64446A3E65cc29a4524Abe91c63b7FAb8'; // Address of your deployed smart contract
 const contract = new web3.eth.Contract(contractABI.abi, contractAddress);
 
 // Route to serve doctor information

@@ -76,4 +76,22 @@
   .patient:hover {
     background-color: #f0f0f0;
   }
+.action-button1 {
+    background-color: #9b0000;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    text-align: center;
+    text-decoration: none;
+    display: inline-block;
+    font-size: 16px;
+    margin: 4px 2px;
+    cursor: pointer;
+    border-radius: 5px;
+}
+.log {
+    display: flex;
+     justify-content: flex-end;
+}
+
   

@@ -71,6 +71,16 @@
   .record strong {
     font-weight: bold;
   }
+  /* Add your CSS styles here */
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+button {
+  margin-top: 10px;
+}
+
   
   
   

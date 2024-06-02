@@ -1,10 +1,16 @@
 const express = require('express');
+const bodyParser = require('body-parser');
 const path = require('path');
 const bcrypt = require('bcrypt');
 const cors = require('cors');
 const mongoose = require('mongoose');
 
-mongoose.connect('mongodb://127.0.0.1:27017', { useNewUrlParser: true, useUnifiedTopology: true });
+const app = express();
+
+app.use(bodyParser.json({limit: '200mb'}));
+app.use(bodyParser.urlencoded({limit: '200mb', extended: true}));
+
+mongoose.connect('mongodb+srv://gdouraahlem:healthchain@cluster0.ra9tzge.mongodb.net/', { useNewUrlParser: true, useUnifiedTopology: true });
 
 const db = mongoose.connection;
 
